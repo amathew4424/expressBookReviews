@@ -20,34 +20,44 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  return res.json(books);
+  return new Promise((resolve)=>{
+    resolve(res.json(books));
+  });
 });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-  let isbn = req.params.isbn;
-  if(booksListContainsId(isbn))
-    return res.json(books[isbn]);
-  else
-    return res.status(204).send('Book not found');
+  return new Promise((resolve, reject)=>{
+    let isbn = req.params.isbn;
+    if(booksListContainsId(isbn))
+      resolve(res.json(books[isbn]));
+    else
+      reject();
+  }).catch(()=>{
+    res.status(204).send('Book not found')
+  });
 });
   
+function getBooksList(){
+  return new Promise((resolve)=>{
+    resolve(Object.values(books));
+  });
+}
+
 // Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  return res.json(
-    getBooksList().filter(
-      book => book.author.includes(req.params.author)
-    )
+public_users.get('/author/:author', async function (req, res) {
+  let booksByAuthor = (await getBooksList()).filter(
+    book => book.author.includes(req.params.author)
   );
+  return res.json(booksByAuthor);
 });
 
 // Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  return res.json(
-    getBooksList().filter(
-      book => book.title.includes(req.params.title)
-    )
+public_users.get('/title/:title', async function (req, res) {
+  let booksByTitle = (await getBooksList()).filter(
+    book => book.title.includes(req.params.title)
   );
+  return res.json(booksByTitle);
 });
 
 //  Get book review
@@ -58,10 +68,6 @@ public_users.get('/review/:isbn',function (req, res) {
   else
     return res.status(204).send('Book not found');
 });
-
-function getBooksList(){
-  return Object.values(books);
-}
 
 function booksListContainsId(isbn){
   return Object.keys(books).includes(isbn);

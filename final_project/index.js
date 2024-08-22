@@ -10,16 +10,14 @@ app.use(express.json());
 app.use("/customer",session({secret:secretKey,resave: true, saveUninitialized: true}))
 
 app.use("/customer/auth/*", function auth(req,res,next){
-    if (req.session.authorization) {
-        let token = req.session.authorization;
-        jwt.verify(token, secretKey,(err,user)=>{
-            if(!err && isValidUser(user)){
-                req.user = user;
-                next();
-            }
-        });
-    } 
-    return res.status(403).json({message: 'User is not authenticated'});
+  if (req.session.authorization) {
+    let token = req.session.authorization['accessToken'];
+    jwt.verify(token, secretKey,(err,user)=>{
+      if(!err)
+        return next();
+    });
+  } 
+  return res.status(403).json({message: 'User is not authenticated'});
 });
  
 const PORT = 5000;

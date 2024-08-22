@@ -32,7 +32,7 @@ regd_users.post("/login", (req,res) => {
         accessToken, username
     }
 
-    return res.send('Successfully logged in as: '+username);
+    return res.send('Successfully logged in as: '+ username + ' : ' + accessToken);
   }
   else
     return res.status(403).send('Invalid username/password');
@@ -40,8 +40,28 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const isbn = req.params.isbn;
+  const username = req.session.authorization.username;
+  let reviews = books[isbn].reviews;
+  let review_exists = false;
+  if(reviews[username]) 
+    review_exists = true;
+
+  reviews[username] = req.body.review;
+  review_exists? 
+    res.send("Review updated") :
+    res.send("Review added");
+  return;
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const isbn = req.params.isbn;
+  const username = req.session.authorization.username;
+  let reviews = books[isbn].reviews;
+  if(reviews[username])
+    delete reviews[username];
+
+  return res.send('deleted successfully');
 });
 
 module.exports.authenticated = regd_users;
